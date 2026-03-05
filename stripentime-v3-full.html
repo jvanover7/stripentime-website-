@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StripeNtime — Parking Lot Striping Done Right</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--card:#111118;--yellow:#ffc72c;--ybright:#ffe066;--white:#f0ece4;--asphalt:#2a2a30;--text:#e0ddd6;--muted:#7d7a73;--blue:#2d7dd2;--red:#d63031;--green:#00b894}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--yellow);border-radius:3px}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:center;padding:18px 60px;background:rgba(10,10,15,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,199,44,.08);transition:all .3s}
+.logo{display:flex;align-items:center;gap:14px;text-decoration:none}.logo-icon{width:52px;height:52px}.logo-icon svg{width:100%;height:100%}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;color:var(--white)}.logo-text span{color:var(--yellow)}
+.nav-links{display:flex;gap:40px;list-style:none}
+.nav-links a{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);text-decoration:none;position:relative;padding-bottom:4px;transition:color .3s}
+.nav-links a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--yellow);transition:width .3s}
+.nav-links a:hover{color:var(--white)}.nav-links a:hover::after{width:100%}
+.nav-phone{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--yellow);text-decoration:none;display:flex;align-items:center;gap:8px}.nav-phone svg{width:16px;height:16px}
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0d0d12}
+.hero-asphalt{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 180px,rgba(255,199,44,.03) 180px,rgba(255,199,44,.03) 184px)}
+.hero-cl{position:absolute;left:50%;top:0;width:4px;height:100%;transform:translateX(-50%);background:repeating-linear-gradient(to bottom,var(--yellow) 0,var(--yellow) 40px,transparent 40px,transparent 70px);opacity:.08;animation:ls 3s linear infinite}
+@keyframes ls{0%{transform:translateX(-50%) translateY(0)}100%{transform:translateX(-50%) translateY(70px)}}
+.hero-glow{position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(255,199,44,.08) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);animation:gp 5s ease-in-out infinite}
+@keyframes gp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.12);opacity:1}}
+.hero-content{position:relative;z-index:10;text-align:center;max-width:900px;padding:0 30px}
+.hero-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--yellow);border:1px solid rgba(255,199,44,.25);padding:8px 24px;margin-bottom:30px;animation:fid .8s ease both}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,9vw,110px);line-height:.95;letter-spacing:4px;color:var(--white);margin-bottom:24px;animation:fiu .8s ease .2s both}
+.hero h1 .hl{background:linear-gradient(135deg,var(--yellow),var(--ybright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:18px;color:var(--muted);max-width:600px;margin:0 auto 40px;line-height:1.7;animation:fiu .8s ease .4s both}
+.hero-buttons{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;animation:fiu .8s ease .6s both}
+.btn-p{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;padding:16px 40px;background:var(--yellow);color:var(--bg);border:none;cursor:pointer;text-decoration:none;font-weight:700;transition:all .3s}
+.btn-p:hover{background:var(--ybright);transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,199,44,.25)}
+.btn-o{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;padding:16px 40px;background:transparent;color:var(--white);border:1px solid rgba(240,236,228,.2);cursor:pointer;text-decoration:none;transition:all .3s}
+.btn-o:hover{border-color:var(--yellow);color:var(--yellow);transform:translateY(-2px)}
+.facts-strip{display:grid;grid-template-columns:repeat(4,1fr);background:var(--asphalt);border-top:3px solid var(--yellow)}
+.fact-item{padding:36px 24px;text-align:center;border-right:1px solid rgba(255,199,44,.06)}.fact-item:last-child{border-right:none}
+.fact-number{font-family:'Bebas Neue',sans-serif;font-size:48px;color:var(--yellow);line-height:1}
+.fact-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.services{padding:120px 60px}.section-header{text-align:center;margin-bottom:80px}
+.section-tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--yellow);margin-bottom:16px;display:block}
+.section-header h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,5vw,64px);letter-spacing:3px;color:var(--white)}
+.section-header p{max-width:560px;margin:16px auto 0;color:var(--muted);font-size:15px;line-height:1.7}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;max-width:1200px;margin:0 auto}
+.sc{background:var(--card);border:1px solid rgba(255,199,44,.06);padding:44px 28px;text-align:center;transition:all .4s;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--yellow);opacity:0;transition:opacity .4s}
+.sc:hover{transform:translateY(-6px);border-color:rgba(255,199,44,.15);box-shadow:0 20px 60px rgba(0,0,0,.4)}.sc:hover::before{opacity:1}
+.sc-i{width:60px;height:60px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;color:var(--yellow)}
+.sc h3{font-size:15px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--white);margin-bottom:10px}
+.sc p{font-size:13px;color:var(--muted);line-height:1.6}
+.cta-band{padding:100px 60px;background:var(--yellow);text-align:center;position:relative;overflow:hidden}
+.cta-band::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(-60deg,transparent,transparent 30px,rgba(0,0,0,.04) 30px,rgba(0,0,0,.04) 60px)}
+.cta-band h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,60px);letter-spacing:3px;color:var(--bg);margin-bottom:16px;position:relative}
+.cta-band p{font-size:16px;color:rgba(10,10,15,.55);margin-bottom:40px;position:relative}
+.btn-d{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;padding:18px 48px;background:var(--bg);color:var(--white);border:none;cursor:pointer;text-decoration:none;font-weight:700;transition:all .3s;position:relative}
+.btn-d:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+footer{padding:80px 60px 40px;background:var(--bg);border-top:3px solid var(--yellow)}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;gap:60px;max-width:1200px;margin:0 auto 60px}
+.footer-brand p{font-size:14px;line-height:1.7;color:var(--muted);margin-top:20px;max-width:320px}
+.fc h4{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--yellow);margin-bottom:24px}
+.fc ul{list-style:none}.fc ul li{margin-bottom:12px}.fc ul a{font-size:14px;color:var(--muted);text-decoration:none;transition:color .3s}.fc ul a:hover{color:var(--white)}
+.fci{font-size:14px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:10px}.fci svg{width:16px;height:16px;color:var(--yellow);flex-shrink:0}
+.footer-bottom{border-top:1px solid rgba(255,199,44,.07);padding-top:30px;display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto}
+.footer-bottom span{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted)}
+.footer-socials{display:flex;gap:16px}.footer-socials a{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,199,44,.12);color:var(--muted);text-decoration:none;transition:all .3s}.footer-socials a:hover{border-color:var(--yellow);color:var(--yellow)}
+@keyframes fiu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fid{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{opacity:0;transform:translateY(30px);transition:all .7s}.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* ════════ QUOTE MODAL ════════ */
+.mo{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.9);backdrop-filter:blur(12px);justify-content:center;align-items:flex-start;padding:24px 12px;overflow-y:auto}
+.mo.active{display:flex}
+.md{background:#0c0c12;border:1px solid rgba(255,199,44,.1);width:100%;max-width:960px;animation:mi .4s ease both}
+@keyframes mi{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.mh{padding:24px 28px;border-bottom:1px solid rgba(255,199,44,.08);display:flex;justify-content:space-between;align-items:center}
+.mh h2{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--white)}.mh h2 span{color:var(--yellow)}
+.mx{width:40px;height:40px;background:none;border:1px solid rgba(255,199,44,.12);color:var(--muted);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s}.mx:hover{border-color:var(--yellow);color:var(--yellow)}
+.mb{padding:28px}
+
+/* Address */
+.ab{display:flex;gap:10px;margin-bottom:20px}
+.ab input{flex:1;font-family:'Outfit',sans-serif;font-size:15px;padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,199,44,.1);color:var(--white);outline:none;transition:border .3s}
+.ab input:focus{border-color:var(--yellow)}.ab input::placeholder{color:var(--muted)}
+.ab button{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:14px 24px;background:var(--yellow);color:var(--bg);border:none;cursor:pointer;font-weight:700;transition:all .3s;white-space:nowrap}
+.ab button:hover{background:var(--ybright)}
+
+/* Map + Overlay container */
+.render-container{position:relative;width:100%;height:440px;background:#1a1a20;border:1px solid rgba(255,199,44,.08);margin-bottom:20px;overflow:hidden}
+.render-container iframe{position:absolute;inset:0;width:100%;height:100%;border:none;z-index:1}
+.render-container canvas{position:absolute;inset:0;z-index:2;pointer-events:none}
+.map-ph{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:20px}
+.map-ph svg{width:48px;height:48px;opacity:.2;margin-bottom:12px}.map-ph p{font-size:14px}
+
+/* Before/After slider */
+.ba-bar{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:10px 16px;background:rgba(255,199,44,.04);border:1px solid rgba(255,199,44,.06)}
+.ba-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.ba-label.active{color:var(--yellow)}
+.ba-bar input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:linear-gradient(90deg,rgba(255,199,44,.1),rgba(255,199,44,.3));border-radius:2px;outline:none}
+.ba-bar input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:var(--yellow);border-radius:50%;cursor:pointer;box-shadow:0 0 12px rgba(255,199,44,.4)}
+
+/* AI Loading */
+.ai-loading{display:none;text-align:center;padding:40px 20px}
+.ai-loading.show{display:block}
+.ai-spinner{width:48px;height:48px;border:3px solid rgba(255,199,44,.1);border-top:3px solid var(--yellow);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-loading p{font-size:14px;color:var(--muted)}
+.ai-loading .ai-step{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--yellow);margin-top:8px}
+
+/* Results panel */
+.results{display:none}.results.show{display:block;animation:fiu .5s ease both}
+
+/* Auto items */
+.auto-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:20px}
+.ai-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,199,44,.03);border:1px solid rgba(255,199,44,.05)}
+.ai-l{font-size:12px;color:var(--text)}.ai-v{font-family:'Space Mono',monospace;font-size:12px;color:var(--yellow)}
+
+/* Quote box */
+.qbox{background:rgba(255,199,44,.04);border:2px solid rgba(255,199,44,.12);padding:28px;text-align:center;margin:20px 0}
+.qbox .ql{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.qbox .qr{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,6vw,64px);letter-spacing:2px;color:var(--white)}.qr .y{color:var(--yellow)}
+.qbox .qn{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+
+/* Breakdown */
+.bd{margin:16px 0;border:1px solid rgba(255,199,44,.05)}.bd-r{display:flex;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,199,44,.03);font-size:13px}.bd-r:last-child{border:none}
+.bd-l{color:var(--muted)}.bd-v{font-family:'Space Mono',monospace;font-size:12px;color:var(--text)}
+.bd-r.t{background:rgba(255,199,44,.05)}.bd-r.t .bd-l{color:var(--white);font-weight:600}.bd-r.t .bd-v{color:var(--yellow);font-weight:700}
+
+/* CTA */
+.qcta{text-align:center;margin-top:24px}
+.btn-t{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:3px;text-transform:uppercase;padding:20px 48px;background:var(--green);color:var(--bg);border:none;cursor:pointer;font-weight:700;transition:all .3s;text-decoration:none;display:inline-flex;align-items:center;gap:12px}
+.btn-t:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,184,148,.3)}.btn-t svg{width:20px;height:20px}
+.or-call{font-size:14px;color:var(--muted);margin-top:14px}.or-call a{color:var(--yellow);text-decoration:none}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:12px 0}
+.lg-i{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.lg-s{width:18px;height:5px;border-radius:1px}
+
+@media(max-width:900px){nav{padding:16px 24px}.nav-links{gap:16px}.nav-links a{font-size:10px;letter-spacing:2px}.nav-phone{display:none}.facts-strip{grid-template-columns:repeat(2,1fr)}.services{padding:80px 24px}.footer-grid{grid-template-columns:1fr 1fr;gap:40px}.cta-band{padding:70px 24px}.mb{padding:20px}.render-container{height:320px}.auto-items{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){nav{padding:14px 20px}.logo-text{font-size:20px;letter-spacing:2px}.logo-icon{width:40px;height:40px}.nav-links{gap:12px}.nav-links a{font-size:9px}.hero-content{padding:0 16px}.hero-buttons{flex-direction:column;align-items:center}.facts-strip{grid-template-columns:1fr 1fr}.fact-number{font-size:36px}.services-grid{grid-template-columns:1fr 1fr;gap:12px}.sc{padding:28px 16px}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:16px;text-align:center}.render-container{height:280px}.auto-items{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="#" class="logo"><div class="logo-icon"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="5" width="50" height="50" rx="3" stroke="#ffc72c" stroke-width="2.5"/><line x1="5" y1="20" x2="55" y2="20" stroke="#ffc72c" stroke-width="1" opacity=".25"/><line x1="5" y1="30" x2="55" y2="30" stroke="#ffc72c" stroke-width="1" opacity=".25"/><line x1="5" y1="40" x2="55" y2="40" stroke="#ffc72c" stroke-width="1" opacity=".25"/><path d="M19 44V16L41 44V16" stroke="#ffc72c" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="logo-text">STRIPE<span>N</span>TIME</div></a>
+  <ul class="nav-links"><li><a href="#services">Services</a></li><li><a href="#why">About</a></li><li><a href="#contact">Contact</a></li></ul>
+  <a href="tel:+14055550199" class="nav-phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>(405) 555-0199</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-asphalt"></div><div class="hero-cl"></div><div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Oklahoma's Parking Lot Striping Pros</div>
+    <h1>CRISP LINES.<br><span class="hl">EVERY SINGLE TIME.</span></h1>
+    <p>Professional parking lot striping, pavement markings, and lot layout for new construction, re-stripes, and everything in between. Serving the greater OKC metro.</p>
+    <div class="hero-buttons"><button class="btn-p" onclick="openQ()">Get a Free Quote</button><a href="tel:+14055550199" class="btn-o">Call: (405) 555-0199</a></div>
+  </div>
+</section>
+
+<section class="facts-strip">
+  <div class="fact-item fade-in"><div class="fact-number">500+</div><div class="fact-label">Lots Striped</div></div>
+  <div class="fact-item fade-in"><div class="fact-number">15+</div><div class="fact-label">Years Experience</div></div>
+  <div class="fact-item fade-in"><div class="fact-number">100%</div><div class="fact-label">ADA Compliant</div></div>
+  <div class="fact-item fade-in"><div class="fact-number">24HR</div><div class="fact-label">Quick Turnaround</div></div>
+</section>
+
+<section class="services" id="services">
+  <div class="section-header fade-in"><span class="section-tag">What We Do</span><h2>Parking Lot Striping & Markings</h2><p>From brand new asphalt to re-stripes and layout redesigns — if it needs a line, we paint it right.</p></div>
+  <div class="services-grid">
+    <div class="sc fade-in"><div class="sc-i"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="28" height="20" rx="2"/><line x1="12" y1="8" x2="12" y2="28"/><line x1="20" y1="8" x2="20" y2="28"/><line x1="28" y1="8" x2="28" y2="28"/></svg></div><h3>New Lot Striping</h3><p>Fresh layout and full striping for newly paved lots.</p></div>
+    <div class="sc fade-in"><div class="sc-i"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 28L18 8L28 28" stroke-linejoin="round"/><line x1="12" y1="20" x2="24" y2="20"/></svg></div><h3>Re-Striping</h3><p>Refresh faded lines and bring your lot back to code.</p></div>
+    <div class="sc fade-in"><div class="sc-i"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2"><rect x="10" y="10" width="16" height="16" rx="2"/><path d="M14 18L17 21L23 15"/></svg></div><h3>ADA Compliance</h3><p>Handicap stalls, signage, access aisles — up to code.</p></div>
+    <div class="sc fade-in"><div class="sc-i"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L18 30" stroke-dasharray="4 3"/><path d="M10 6L10 30"/><path d="M26 6L26 30"/></svg></div><h3>Lot Layout Design</h3><p>Maximize spaces with smart traffic flow.</p></div>
+    <div class="sc fade-in"><div class="sc-i"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 28L18 10L30 28Z" stroke-linejoin="round"/><line x1="18" y1="18" x2="18" y2="22"/></svg></div><h3>Fire Lanes</h3><p>Red curb painting and stencils per fire code.</p></div>
+    <div class="sc fade-in"><div class="sc-i"><svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2"><polygon points="18,6 24,16 18,14 12,16"/><line x1="18" y1="14" x2="18" y2="30"/></svg></div><h3>Arrows & Stencils</h3><p>Directional arrows, custom text, and markings.</p></div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <h2>YOUR LOT NEEDS FRESH LINES?</h2>
+  <p>Free estimates · Same-week scheduling · Serving the entire OKC metro.</p>
+  <button class="btn-d" onclick="openQ()">Get a Free Quote</button>
+</section>
+
+<footer id="contact">
+  <div class="footer-grid">
+    <div class="footer-brand"><a href="#" class="logo" style="margin-bottom:0"><div class="logo-icon" style="width:44px;height:44px"><svg viewBox="0 0 60 60" fill="none"><rect x="5" y="5" width="50" height="50" rx="3" stroke="#ffc72c" stroke-width="2.5"/><line x1="5" y1="20" x2="55" y2="20" stroke="#ffc72c" stroke-width="1" opacity=".25"/><line x1="5" y1="30" x2="55" y2="30" stroke="#ffc72c" stroke-width="1" opacity=".25"/><line x1="5" y1="40" x2="55" y2="40" stroke="#ffc72c" stroke-width="1" opacity=".25"/><path d="M19 44V16L41 44V16" stroke="#ffc72c" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="logo-text">STRIPE<span>N</span>TIME</div></a><p>Professional parking lot striping across the OKC metro.</p></div>
+    <div class="fc"><h4>Navigate</h4><ul><li><a href="#">Home</a></li><li><a href="#services">Services</a></li><li><a href="#contact">Contact</a></li></ul></div>
+    <div class="fc"><h4>Services</h4><ul><li><a href="#">New Striping</a></li><li><a href="#">Re-Striping</a></li><li><a href="#">ADA Compliance</a></li><li><a href="#">Fire Lanes</a></li></ul></div>
+    <div class="fc"><h4>Connect</h4>
+      <div class="fci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Oklahoma City, OK</div>
+      <div class="fci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>(405) 555-0199</div>
+      <div class="fci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>info@stripentime.com</div>
+    </div>
+  </div>
+  <div class="footer-bottom"><span>&copy; 2026 STRIPENTIME</span><div class="footer-socials"><a href="#"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a><a href="#"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg></a></div></div>
+</footer>
+
+<!-- ════════ QUOTE MODAL ════════ -->
+<div class="mo" id="qm">
+<div class="md">
+  <div class="mh"><h2>SEE YOUR LOT <span>FRESHLY STRIPED</span></h2><button class="mx" onclick="closeQ()">&times;</button></div>
+  <div class="mb">
+
+    <div class="ab">
+      <input type="text" id="ai" placeholder="Enter property address — e.g. 201 S Green Ave, Purcell, OK" onkeydown="if(event.key==='Enter')analyze()">
+      <button onclick="analyze()">Analyze Lot</button>
+    </div>
+
+    <!-- Map + Canvas overlay -->
+    <div class="render-container" id="rc">
+      <div class="map-ph" id="mph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <p style="font-size:15px;margin-bottom:6px;color:var(--white)">Enter your address above</p>
+        <p>We'll pull a satellite view and show you exactly what your lot would look like with fresh striping.</p>
+      </div>
+      <canvas id="oc"></canvas>
+    </div>
+
+    <!-- AI Loading -->
+    <div class="ai-loading" id="ail">
+      <div class="ai-spinner"></div>
+      <p>Analyzing your parking lot...</p>
+      <div class="ai-step" id="aiStep">Loading satellite imagery</div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="res">
+
+      <!-- Before/After slider -->
+      <div class="ba-bar">
+        <span class="ba-label">BEFORE</span>
+        <input type="range" id="baSlider" min="0" max="100" value="100" oninput="setOverlay(this.value)">
+        <span class="ba-label active">AFTER</span>
+      </div>
+
+      <div class="legend">
+        <div class="lg-i"><div class="lg-s" style="background:#ffc72c"></div>Parking Lines</div>
+        <div class="lg-i"><div class="lg-s" style="background:#2d7dd2"></div>Handicap Zones</div>
+        <div class="lg-i"><div class="lg-s" style="background:#e74c3c"></div>Fire Lane</div>
+        <div class="lg-i"><div class="lg-s" style="background:#ecf0f1"></div>Crosswalks & Arrows</div>
+      </div>
+
+      <!-- Auto-detected -->
+      <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--yellow);margin:16px 0 10px">AI-Detected For Your Lot</div>
+      <div class="auto-items" id="aitems"></div>
+
+      <!-- Quote -->
+      <div class="qbox">
+        <div class="ql">Estimated Project Cost</div>
+        <div class="qr" id="qrange"></div>
+        <div class="qn">Based on AI analysis of your lot. Final pricing depends on lot condition, paint type, and layout complexity. Includes mobilization fee.</div>
+      </div>
+
+      <div class="bd" id="bdown"></div>
+
+      <div class="qcta">
+        <a id="smsL" href="#" class="btn-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Text Us to Get Started</a>
+        <div class="or-call">or call <a href="tel:+14055550199">(405) 555-0199</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// Scroll anims
+const obs=new IntersectionObserver(e=>{e.forEach((en,i)=>{if(en.isIntersecting){setTimeout(()=>en.target.classList.add('visible'),i*60);obs.unobserve(en.target)}})},{threshold:.1});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+window.addEventListener('scroll',()=>{document.querySelector('nav').style.boxShadow=window.scrollY>60?'0 4px 30px rgba(0,0,0,.5)':'none'});
+
+function openQ(){document.getElementById('qm').classList.add('active');document.body.style.overflow='hidden'}
+function closeQ(){document.getElementById('qm').classList.remove('active');document.body.style.overflow=''}
+document.getElementById('qm').addEventListener('click',function(e){if(e.target===this)closeQ()});
+
+let addr='',lot={};
+
+// ════════ AI ANALYSIS ════════
+async function analyze(){
+  const a=document.getElementById('ai').value.trim();
+  if(!a)return;
+  addr=a;
+
+  // Show loading
+  document.getElementById('mph').style.display='none';
+  document.getElementById('ail').classList.add('show');
+  document.getElementById('res').classList.remove('show');
+
+  // Load satellite map behind canvas
+  const rc=document.getElementById('rc');
+  const existingIframe=rc.querySelector('iframe');
+  if(existingIframe)existingIframe.remove();
+  const ifr=document.createElement('iframe');
+  ifr.src=`https://maps.google.com/maps?q=${encodeURIComponent(a)}&t=k&z=19&output=embed`;
+  ifr.allowFullscreen=true;ifr.loading='lazy';
+  rc.insertBefore(ifr,rc.firstChild);
+
+  // Animate loading steps
+  const steps=['Loading satellite imagery','Identifying parking area boundaries','Calculating stall capacity','Planning ADA compliance layout','Estimating fire lane requirements','Generating fresh-stripe rendering'];
+  let si=0;
+  const stepInt=setInterval(()=>{si++;if(si<steps.length)document.getElementById('aiStep').textContent=steps[si]},800);
+
+  // Call Claude API to analyze the lot
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:`You are a parking lot striping estimator AI. Given a property address, estimate the parking lot characteristics. Be realistic based on the type and size of the business/property.
+
+Address: ${a}
+
+Respond ONLY with a JSON object, no markdown, no explanation:
+{
+  "businessType": "string describing type (e.g. 'shopping center', 'church', 'office', 'restaurant')",
+  "stalls": number (total standard parking stalls),
+  "handicap": number (ADA-required handicap stalls),
+  "hatchingSqFt": number (total hatching/cross-hatch area in sq ft),
+  "fireLaneFt": number (fire lane linear feet),
+  "arrows": number (directional arrows),
+  "crosswalks": number,
+  "stopBars": number,
+  "curbPaintFt": number (curb paint linear feet),
+  "lotWidthFt": number (approximate lot width),
+  "lotDepthFt": number (approximate lot depth),
+  "buildingWidthFt": number,
+  "buildingDepthFt": number,
+  "confidence": "high" or "medium" or "low"
+}`}]
+      })
+    });
+    const data=await resp.json();
+    const txt=data.content.map(c=>c.text||'').join('');
+    lot=JSON.parse(txt.replace(/```json|```/g,'').trim());
+  }catch(e){
+    // Fallback estimation if API fails
+    lot=estimateFallback(a);
+  }
+
+  clearInterval(stepInt);
+  document.getElementById('aiStep').textContent='Rendering complete';
+
+  // Small delay for effect
+  setTimeout(()=>{
+    document.getElementById('ail').classList.remove('show');
+    document.getElementById('res').classList.add('show');
+    sizeCanvas();
+    renderOverlay(100);
+    buildItems();
+    buildQuote();
+  },600);
+}
+
+function estimateFallback(a){
+  const al=a.toLowerCase();
+  let s=60,type='commercial property';
+  if(al.includes('church')||al.includes('baptist')||al.includes('methodist')){s=80;type='church'}
+  else if(al.includes('walmart')||al.includes('target')||al.includes('shopping')||al.includes('mall')||al.includes('center')){s=180;type='shopping center'}
+  else if(al.includes('school')||al.includes('university')){s=120;type='school'}
+  else if(al.includes('hospital')||al.includes('medical')){s=150;type='medical facility'}
+  else if(al.includes('restaurant')||al.includes('cafe')||al.includes('pizza')){s=30;type='restaurant'}
+  else if(al.includes('office')){s=70;type='office building'}
+  const hc=s<=25?1:s<=50?2:s<=75?3:s<=100?4:s<=150?5:s<=200?7:8;
+  return{businessType:type,stalls:s,handicap:hc,hatchingSqFt:hc*90,fireLaneFt:Math.round(s*2.5),arrows:Math.max(2,Math.round(s/12)),crosswalks:s>80?3:2,stopBars:s>60?3:2,curbPaintFt:Math.round(s*1.3),lotWidthFt:Math.round(Math.sqrt(s*180)*1.4),lotDepthFt:Math.round(Math.sqrt(s*180)),buildingWidthFt:Math.round(Math.sqrt(s*180)*0.6),buildingDepthFt:Math.round(Math.sqrt(s*180)*0.35),confidence:'medium'};
+}
+
+// ════════ CANVAS OVERLAY ════════
+function sizeCanvas(){
+  const rc=document.getElementById('rc');
+  const c=document.getElementById('oc');
+  c.width=rc.offsetWidth;c.height=rc.offsetHeight;
+}
+window.addEventListener('resize',()=>{if(document.getElementById('res').classList.contains('show')){sizeCanvas();renderOverlay(document.getElementById('baSlider').value)}});
+
+function setOverlay(v){
+  const c=document.getElementById('oc');
+  c.style.opacity=v/100;
+}
+
+function renderOverlay(opacity){
+  const c=document.getElementById('oc');
+  const ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+
+  const s=lot.stalls||60;
+  const hc=lot.handicap||2;
+
+  // Scale: at zoom 19 on satellite, we're looking at roughly the lot
+  // We'll position the rendering to fill the parking area (lower ~65% of view)
+  const lotTop=H*0.30;    // building area above
+  const lotBot=H*0.95;
+  const lotLeft=W*0.08;
+  const lotRight=W*0.92;
+  const lotW=lotRight-lotLeft;
+  const lotH=lotBot-lotTop;
+
+  // Calculate stall dimensions in pixels (proportional)
+  const stallsPerRow=Math.ceil(s/4); // 2 double-loaded aisles = 4 rows
+  const stallW=Math.min(lotW/stallsPerRow, lotW/8);
+  const stallD=stallW*2.1; // 8.5ft × 18ft ratio
+  const aisleW=stallD*1.3;
+
+  const rowWidth=stallsPerRow*stallW;
+  const startX=(W-rowWidth)/2;
+
+  // Row positions
+  const row1Y=lotTop+10;
+  const row2Y=row1Y+stallD;
+  const aisle1Y=row2Y;
+  const row3Y=aisle1Y+aisleW;
+  const row4Y=row3Y+stallD;
+
+  // ─── FIRE LANE (red, along building edge) ───
+  const fireY=lotTop-4;
+  ctx.save();
+  ctx.shadowColor='rgba(231,76,60,0.6)';ctx.shadowBlur=8;
+  ctx.strokeStyle='rgba(231,76,60,0.85)';ctx.lineWidth=3;
+  ctx.setLineDash([12,6]);
+  ctx.beginPath();ctx.moveTo(startX-10,fireY);ctx.lineTo(startX+rowWidth+10,fireY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(startX-10,fireY+8);ctx.lineTo(startX+rowWidth+10,fireY+8);ctx.stroke();
+  ctx.setLineDash([]);
+  // Fire lane text
+  ctx.font='bold 8px sans-serif';ctx.fillStyle='rgba(231,76,60,0.9)';ctx.textAlign='center';
+  ctx.fillText('🔥 FIRE LANE — NO PARKING',W/2,fireY+6);
+  ctx.restore();
+
+  // ─── PARKING STALLS ───
+  function drawStalls(y,count,hcCount,faceUp){
+    ctx.save();
+    for(let i=0;i<count;i++){
+      const x=startX+i*stallW;
+      const isHC=i<hcCount;
+
+      if(isHC){
+        // Handicap zone - blue background
+        ctx.fillStyle='rgba(45,125,210,0.25)';
+        ctx.fillRect(x+1,y+1,stallW-2,stallD-2);
+
+        // Blue border
+        ctx.save();ctx.shadowColor='rgba(45,125,210,0.5)';ctx.shadowBlur=6;
+        ctx.strokeStyle='rgba(45,125,210,0.9)';ctx.lineWidth=2.5;
+        ctx.strokeRect(x,y,stallW,stallD);
+        ctx.restore();
+
+        // Wheelchair symbol
+        ctx.font=`bold ${Math.max(10,stallW*0.55)}px sans-serif`;
+        ctx.fillStyle='rgba(45,125,210,0.85)';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('♿',x+stallW/2,y+stallD/2);
+
+        // Hatching on access aisle (right side of last HC spot)
+        if(i===hcCount-1){
+          ctx.save();
+          ctx.strokeStyle='rgba(45,125,210,0.5)';ctx.lineWidth=1;
+          const hx=x+stallW;const hw=stallW*0.55;
+          for(let hy=y;hy<y+stallD;hy+=5){
+            ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(hx+hw,hy);ctx.stroke();
+          }
+          ctx.strokeStyle='rgba(45,125,210,0.7)';ctx.lineWidth=1.5;
+          ctx.strokeRect(hx,y,hw,stallD);
+          ctx.restore();
+        }
+      }
+
+      // Yellow stall line
+      ctx.save();
+      ctx.shadowColor='rgba(255,199,44,0.5)';ctx.shadowBlur=4;
+      ctx.strokeStyle=isHC?'rgba(45,125,210,0.9)':'rgba(255,199,44,0.9)';
+      ctx.lineWidth=isHC?2.5:2;
+      // Left line of stall
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+stallD);ctx.stroke();
+      ctx.restore();
+    }
+    // Last line
+    ctx.save();ctx.shadowColor='rgba(255,199,44,0.5)';ctx.shadowBlur=4;
+    ctx.strokeStyle='rgba(255,199,44,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(startX+count*stallW,y);ctx.lineTo(startX+count*stallW,y+stallD);ctx.stroke();
+
+    // Front stop line (thicker)
+    ctx.lineWidth=2.5;
+    const stopY=faceUp?y+stallD:y;
+    ctx.beginPath();ctx.moveTo(startX,stopY);ctx.lineTo(startX+count*stallW,stopY);ctx.stroke();
+    ctx.restore();
+  }
+
+  // Top row pair (facing building, HC spots here)
+  const topCount=Math.min(stallsPerRow,Math.ceil(s*0.3));
+  drawStalls(row1Y,topCount,hc,true);
+
+  // Bottom of top row + top of bottom row = double-loaded aisle
+  const midCount=Math.min(stallsPerRow,Math.ceil(s*0.35));
+  if(row3Y+stallD<lotBot){
+    drawStalls(row3Y,midCount,0,true);
+    // Second pair facing opposite
+    if(row4Y+aisleW+stallD<lotBot){
+      const r5Y=row4Y+aisleW*0.4;
+      const botCount=Math.min(stallsPerRow,s-topCount-midCount);
+      if(botCount>0)drawStalls(r5Y,botCount,0,false);
+    }
+  }
+
+  // ─── DIRECTIONAL ARROWS ───
+  const arrowCount=lot.arrows||4;
+  ctx.save();ctx.shadowColor='rgba(255,255,255,0.4)';ctx.shadowBlur=6;
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+
+  // Aisle 1 arrows
+  const a1Y=row2Y+aisleW*0.3;
+  for(let i=0;i<Math.min(arrowCount,3);i++){
+    const ax=startX+rowWidth*0.2+i*(rowWidth*0.3);
+    drawArrow(ctx,ax,a1Y,i%2===0?'right':'left',stallW*0.6);
+  }
+  // Aisle 2 arrows
+  if(row4Y<lotBot){
+    const a2Y=row4Y+aisleW*0.15;
+    for(let i=0;i<Math.min(arrowCount-2,2);i++){
+      const ax=startX+rowWidth*0.3+i*(rowWidth*0.4);
+      drawArrow(ctx,ax,a2Y,i%2===0?'left':'right',stallW*0.6);
+    }
+  }
+  ctx.restore();
+
+  // ─── CROSSWALKS ───
+  ctx.save();ctx.shadowColor='rgba(255,255,255,0.3)';ctx.shadowBlur=4;
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  // Main entrance crosswalk
+  const cwX=W/2-stallW*0.8;
+  for(let i=0;i<6;i++){
+    ctx.fillRect(cwX+i*(stallW*0.3),lotTop-16,stallW*0.15,18);
+  }
+  // Side crosswalk
+  if(lot.crosswalks>1){
+    const cw2X=startX+rowWidth*0.15;
+    for(let i=0;i<6;i++){
+      ctx.fillRect(cw2X+i*(stallW*0.3),lotBot-6,stallW*0.15,14);
+    }
+  }
+  ctx.restore();
+
+  // ─── STOP BARS ───
+  ctx.save();ctx.shadowColor='rgba(255,255,255,0.3)';ctx.shadowBlur=4;
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.fillRect(startX,lotBot+2,rowWidth,3);
+  if(lot.stopBars>1)ctx.fillRect(startX+rowWidth*0.4,lotBot+2,rowWidth*0.2,3);
+  ctx.restore();
+
+  // ─── CURB PAINT (yellow side borders) ───
+  ctx.save();ctx.shadowColor='rgba(255,199,44,0.4)';ctx.shadowBlur=4;
+  ctx.fillStyle='rgba(255,199,44,0.7)';
+  ctx.fillRect(startX-6,row1Y,3,lotBot-row1Y);
+  ctx.fillRect(startX+rowWidth+3,row1Y,3,lotBot-row1Y);
+  ctx.restore();
+
+  c.style.opacity=opacity/100;
+}
+
+function drawArrow(ctx,x,y,dir,size){
+  const s=size||16;const d=dir==='right'?1:-1;
+  ctx.beginPath();
+  ctx.moveTo(x-d*s,y);ctx.lineTo(x+d*s*0.5,y);
+  ctx.lineTo(x+d*s*0.5,y-s*0.35);
+  ctx.lineTo(x+d*s,y);
+  ctx.lineTo(x+d*s*0.5,y+s*0.35);
+  ctx.lineTo(x+d*s*0.5,y);
+  ctx.closePath();
+  ctx.fill();
+  // Shaft
+  ctx.fillRect(x-d*s,y-s*0.12,d*s*1.5,s*0.24);
+}
+
+// ════════ BUILD ITEMS & QUOTE ════════
+const P={stalls:{lo:18,hi:18},handicap:{lo:100,hi:200},hatchingSqFt:{lo:2.5,hi:2.5},fireLaneFt:{lo:1.5,hi:1.5},arrows:{lo:15,hi:25},crosswalks:{lo:75,hi:150},stopBars:{lo:25,hi:50},curbPaintFt:{lo:1,hi:2}};
+const LBL={stalls:'Parking Stalls',handicap:'Handicap Stencils',hatchingSqFt:'Hatching',fireLaneFt:'Fire Lane',arrows:'Arrows',crosswalks:'Crosswalks',stopBars:'Stop Bars',curbPaintFt:'Curb Paint'};
+const UNIT={stalls:'stalls',handicap:'stencils',hatchingSqFt:'sq ft',fireLaneFt:'lin ft',arrows:'ea',crosswalks:'ea',stopBars:'ea',curbPaintFt:'lin ft'};
+
+function buildItems(){
+  const el=document.getElementById('aitems');
+  let h=`<div class="ai-item"><span class="ai-l">🏢 Type</span><span class="ai-v">${lot.businessType||'Commercial'}</span></div>`;
+  h+=`<div class="ai-item"><span class="ai-l">📏 Lot Size</span><span class="ai-v">~${lot.lotWidthFt||200}×${lot.lotDepthFt||150} ft</span></div>`;
+  for(const k of Object.keys(P)){
+    if(lot[k])h+=`<div class="ai-item"><span class="ai-l">${LBL[k]}</span><span class="ai-v">${lot[k]} ${UNIT[k]}</span></div>`;
+  }
+  el.innerHTML=h;
+}
+
+function buildQuote(){
+  let tLo=150,tHi=350;let html='';
+  for(const k of Object.keys(P)){
+    const q=lot[k]||0;if(!q)continue;
+    const lo=q*P[k].lo,hi=q*P[k].hi;tLo+=lo;tHi+=hi;
+    const v=lo===hi?'$'+lo.toLocaleString():'$'+lo.toLocaleString()+'–$'+hi.toLocaleString();
+    html+=`<div class="bd-r"><span class="bd-l">${LBL[k]} × ${q} ${UNIT[k]}</span><span class="bd-v">${v}</span></div>`;
+  }
+  html+=`<div class="bd-r"><span class="bd-l">Mobilization Fee</span><span class="bd-v">$150–$350</span></div>`;
+  html+=`<div class="bd-r t"><span class="bd-l">Estimated Total</span><span class="bd-v">$${tLo.toLocaleString()} – $${tHi.toLocaleString()}</span></div>`;
+  document.getElementById('bdown').innerHTML=html;
+  document.getElementById('qrange').innerHTML=`<span class="y">$${tLo.toLocaleString()}</span> — $${tHi.toLocaleString()}`;
+
+  let b=`Hi! I'd like a quote for parking lot striping.%0AAddress: ${addr}%0A`;
+  for(const k of Object.keys(P)){if(lot[k])b+=`${LBL[k]}: ${lot[k]} ${UNIT[k]}%0A`}
+  b+=`Estimate: $${tLo.toLocaleString()} – $${tHi.toLocaleString()}`;
+  document.getElementById('smsL').href=`sms:+14055550199&body=${b}`;
+}
+</script>
+</body>
+</html>
